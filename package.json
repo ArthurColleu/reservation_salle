@@ -1,0 +1,21 @@
+{
+  "name": "electron-todos",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "electron": "^35.0.1"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "dotenv": "^16.4.7",
+    "mysql2": "^3.13.0"
+  }
+}
