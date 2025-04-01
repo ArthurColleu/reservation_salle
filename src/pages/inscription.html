@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
+
+    <title>Inscription</title>
+</head>
+
+<body>
+    <h1 class="text-center my-4">Inscription</h1>
+    <div class="container">
+        <form id="form">
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Mot de passe (minimum 8 caractères)</label>
+                <input type="password" class="form-control" id="password">
+            </div>
+            <div class="mb-3">
+                <label for="passwordConfirm" class="form-label">Confirmation de mot de passe</label>
+                <input type="password" class="form-control" id="passwordConfirm">
+            </div>
+            <div class="mb-3">
+                <label for="prenom" class="form-label">Prenom:</label>
+                <input type="text" class="form-control" id="prenom">
+            </div>
+            <div class="mb-3">
+                <label for="nom" class="form-label">Nom:</label>
+                <input type="text" class="form-control" id="nom">
+            </div>
+            <button type="submit" class="btn btn-primary">S'inscrire</button>
+        </form>
+    </div>
+    <script src="../js/inscription.js"></script>
+
+</body>
+
+</html>

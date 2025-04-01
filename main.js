@@ -3,7 +3,7 @@
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron")
 const path = require('path');
 const mysql = require('mysql2/promise');
-const { title} = require("process");
+const { title } = require("process");
 require("dotenv").config()
 //Fenetre  principale
 let window;
@@ -40,8 +40,8 @@ testConnexion()
 //Créer la fenêtre principale
 function createWindow() {
     window = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 1050,
+        height: 840,
         webPreferences: {
             nodeIntegration: false, //Acces aux API Node depuis le processus
             contextIsolation: true,
@@ -64,8 +64,15 @@ function createMenu() {
             label: "App",
             submenu: [
                 {
-                    label: 'Versions',
+                    label: 'Accueil',
                     click: () => window.loadFile('src/pages/index.html')
+                },
+                {
+                    type: 'separator'
+                },
+                {
+                    label: 'Inscription',
+                    click: () => window.loadFile('src/pages/inscription.html')
                 },
                 {
                     type: 'separator'
@@ -77,22 +84,22 @@ function createMenu() {
                 }
             ]
         },
-        {
-            label: "Tâches",
-            submenu: [
-                {
-                    label: "Lister",
-                    click: () => window.loadFile('src/pages/list-taches.html')
-                },
-                {
-                    type: 'separator'
-                },
-                {
-                    label: "Ajouter",
-                    click: () => window.loadFile('src/pages/ajout-taches.html')
-                }
-            ]
-        }
+        //{
+        //    label: "Tâches",
+        //    submenu: [
+        //        {
+        //            label: "Lister",
+        //            click: () => window.loadFile('src/pages/list-taches.html')
+        //        },
+        //        {
+        //            type: 'separator'
+        //        },
+        //        {
+        //            label: "Ajouter",
+        //            click: () => window.loadFile('src/pages/ajout-taches.html')
+        //        }
+        //    ]
+        //}
     ]
     //Créer le menu à partir du modèle
     const menu = Menu.buildFromTemplate(template)
