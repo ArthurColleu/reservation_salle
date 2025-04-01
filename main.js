@@ -70,13 +70,7 @@ function createMenu() {
                 {
                     type: 'separator'
                 },
-                {
-                    label: 'Inscription',
-                    click: () => window.loadFile('src/pages/inscription.html')
-                },
-                {
-                    type: 'separator'
-                },
+
                 {
                     label: 'Quitter',
                     accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
@@ -84,22 +78,18 @@ function createMenu() {
                 }
             ]
         },
-        //{
-        //    label: "Tâches",
-        //    submenu: [
-        //        {
-        //            label: "Lister",
-        //            click: () => window.loadFile('src/pages/list-taches.html')
-        //        },
-        //        {
-        //            type: 'separator'
-        //        },
-        //        {
-        //            label: "Ajouter",
-        //            click: () => window.loadFile('src/pages/ajout-taches.html')
-        //        }
-        //    ]
-        //}
+        {
+            label: "Utilisateur",
+            submenu: [
+                {
+                    label: 'Inscription',
+                    click: () => window.loadFile('src/pages/inscription.html')
+                },
+                {
+                    type: 'separator'
+                },
+            ]
+        }
     ]
     //Créer le menu à partir du modèle
     const menu = Menu.buildFromTemplate(template)
@@ -130,3 +120,42 @@ ipcMain.handle('get-versions', () => {
     }
 })
 
+async function getAllUsers() {
+    try {
+        const resultat = await pool.query('SELECT * FROM users')
+        return resultat[0] // Retourne une promesse avec le résultat
+    } catch (error) {
+        console.error('erreur lors de la récupération des tâches')
+        throw error; // retourner une promesse non résolue
+    }
+}
+// Écouter sur le canal "todos:getAll"
+ipcMain.handle('user:getAll', async () => {
+    //Récupérer la liste des tâches dans le base de données avec la librairie mysql
+    try {
+        return await getAllUsers() // Retourne une promesse avec le résultat
+    } catch (error) {
+        dialog.showErrorBox("Erreur technique", "Impossible de récupérer la liste des tâches.")
+        return []; // Retourne une promesse avec un tableau vide
+    }
+})
+async function addUser(password, email, prenom, nom) {
+    try {
+        const [resultat] = await pool.query('INSERT INTO users (password_user, email_user, prenom_user, nom_user, date_create) VALUES (?,?,?,?, NOW())', [password, email, prenom, nom])
+        return;
+    } catch (error) {
+        console.error('erreur lors de la création d\'utilisateurs')
+        throw error; // retourner une promesse non résolue
+    }
+}
+
+ipcMain.handle('user:addUser', async (event, password, email, prenom, nom) => {
+    console.log(password, email, prenom, nom)
+    try {
+        await addUser(password, email, prenom, nom);
+        return true
+    } catch {
+        dialog.showErrorBox("Erreur technique", "Impossible de créer un utilisateur")
+        return []; // Retourne une promesse avec un tableau vide
+    }
+})
