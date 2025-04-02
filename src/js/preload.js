@@ -2,11 +2,6 @@
 // Accès aux API Node et Electron
 const { contextBridge, ipcRenderer } = require('electron')
 
-contextBridge.exposeInMainWorld('versions', {
-    // fonction qui récupére les versions via IPC
-    getVersions: () => ipcRenderer.invoke('get-versions')
-})
-
 contextBridge.exposeInMainWorld('UserAPI', {
     // fonction qui récupére la liste des tâches via IPC
     getAll: () => ipcRenderer.invoke('user:getAll'),

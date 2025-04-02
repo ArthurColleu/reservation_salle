@@ -1,4 +1,5 @@
 let formSignUp = document.getElementById("form")
+let formError = document.getElementById("error-form")
 formSignUp.addEventListener("submit", async (e) => {
     e.preventDefault();
     let email = document.getElementById("email");
@@ -13,7 +14,6 @@ formSignUp.addEventListener("submit", async (e) => {
             throw new Error('Erreur dans l\'inscription, l\'un des champs est vide')
         }
         list_user.forEach(element => {
-            console.log(element["email_user"]);
             if (element["email_user"] == email.value) {
                 throw new Error('L\'email est déjà utilisé')
             }
@@ -27,6 +27,8 @@ formSignUp.addEventListener("submit", async (e) => {
         }
         await UserAPI.addUser(password.value, email.value, prenom.value, nom.value)
     } catch (error) {
+        formError.classList.add('bg-warning', 'text-danger')
+        formError.textContent = error
         console.error(error);
     }
 })

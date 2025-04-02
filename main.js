@@ -4,6 +4,7 @@ const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron")
 const path = require('path');
 const mysql = require('mysql2/promise');
 const { title } = require("process");
+const { Bycrypt } = require("bcryptjs")
 require("dotenv").config()
 //Fenetre  principale
 let window;
@@ -110,16 +111,6 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit()
 })
 
-// Écouter sur le canal "get-versions"
-ipcMain.handle('get-versions', () => {
-    // renvoyer un objet contenant les versions des outils
-    return {
-        electron: process.versions.electron,
-        node: process.versions.node,
-        chrome: process.versions.chrome,
-    }
-})
-
 async function getAllUsers() {
     try {
         const resultat = await pool.query('SELECT * FROM users')
@@ -141,7 +132,9 @@ ipcMain.handle('user:getAll', async () => {
 })
 async function addUser(password, email, prenom, nom) {
     try {
-        const [resultat] = await pool.query('INSERT INTO users (password_user, email_user, prenom_user, nom_user, date_create) VALUES (?,?,?,?, NOW())', [password, email, prenom, nom])
+        const salt = await bcrypt.genSalt(10);
+        const passwordHashed = await bcrypt.hash(password, salt)
+        const [resultat] = await pool.query('INSERT INTO users (password_user, email_user, prenom_user, nom_user, date_create) VALUES (?,?,?,?, NOW())', [passwordHashed, email, prenom, nom])
         return;
     } catch (error) {
         console.error('erreur lors de la création d\'utilisateurs')

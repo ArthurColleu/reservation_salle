@@ -4,7 +4,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build":"electron build",
+    "build": "electron build",
     "dev": "electron dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -16,6 +16,7 @@
     "electron": "^35.0.1"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "bootstrap": "^5.3.3",
     "dotenv": "^16.4.7",
     "electron-store": "^10.0.1",
