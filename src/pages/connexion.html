@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
+
+    <title>Connexion</title>
+</head>
+
+<body>
+    <h1 class="text-center my-4">Connexion</h1>
+    <div class="container">
+        <form id="form">
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Mot de passe</label>
+                <input type="password" class="form-control" id="password">
+            </div>
+            <button type="submit" class="btn btn-primary">S'inscrire</button>
+        </form>
+        <div id="error-form"></div>
+    </div>
+    <script src="../js/connexion.js"></script>
+</body>
+
+</html>

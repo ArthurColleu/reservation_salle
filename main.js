@@ -4,7 +4,10 @@ const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron")
 const path = require('path');
 const mysql = require('mysql2/promise');
 const { title } = require("process");
-const { Bycrypt } = require("bcryptjs")
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken'); // Pour générer des tokens JWT
+
+const { log } = require("console");
 require("dotenv").config()
 //Fenetre  principale
 let window;
@@ -89,6 +92,13 @@ function createMenu() {
                 {
                     type: 'separator'
                 },
+                {
+                    label: 'Connexion',
+                    click: () => window.loadFile('src/pages/connexion.html')
+                },
+                {
+                    type: 'separator'
+                },
             ]
         }
     ]
@@ -134,6 +144,8 @@ async function addUser(password, email, prenom, nom) {
     try {
         const salt = await bcrypt.genSalt(10);
         const passwordHashed = await bcrypt.hash(password, salt)
+        console.log(passwordHashed, email, prenom, nom);
+
         const [resultat] = await pool.query('INSERT INTO users (password_user, email_user, prenom_user, nom_user, date_create) VALUES (?,?,?,?, NOW())', [passwordHashed, email, prenom, nom])
         return;
     } catch (error) {
@@ -147,8 +159,47 @@ ipcMain.handle('user:addUser', async (event, password, email, prenom, nom) => {
     try {
         await addUser(password, email, prenom, nom);
         return true
-    } catch {
-        dialog.showErrorBox("Erreur technique", "Impossible de créer un utilisateur")
+    } catch (error) {
+        console.log(error);
+        dialog.showErrorBox("Erreur technique", "Impossible de créer un utilisateur ")
         return []; // Retourne une promesse avec un tableau vide
     }
 })
+
+// Fonction pour vérifier les identifiants de l'utilisateur
+async function loginUser(email, password) {
+    try {
+        const [rows] = await pool.query('SELECT * FROM users WHERE email_user = ?', [email]);
+        if (rows.length === 0) {
+            throw new Error('Utilisateur non trouvé');
+        }
+
+        const user = rows[0];
+        const isPasswordValid = await bcrypt.compare(password, user.password_user);
+        if (!isPasswordValid) {
+            throw new Error('Mot de passe incorrect');
+        }
+
+        // Générer un token JWT
+        const token = jwt.sign(
+            { id: user.id_user, email: user.email_user },
+            process.env.JWT_SECRET, // Clé secrète pour signer le token
+            { expiresIn: '1h' } // Durée de validité du token
+        );
+
+        return { token, user: { id: user.id_user, email: user.email_user, prenom: user.prenom_user, nom: user.nom_user } };
+    } catch (error) {
+        console.error('Erreur lors de la connexion :', error.message);
+        throw error;
+    }
+}
+
+// Gestion de l'événement "user:login"
+ipcMain.handle('user:login', async (event, email, password) => {
+    try {
+        return await loginUser(email, password);
+    } catch (error) {
+        dialog.showErrorBox("Erreur de connexion", error.message);
+        return null;
+    }
+});

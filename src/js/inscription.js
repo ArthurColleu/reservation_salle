@@ -26,9 +26,11 @@ formSignUp.addEventListener("submit", async (e) => {
             }
         }
         await UserAPI.addUser(password.value, email.value, prenom.value, nom.value)
+
+        window.location.replace("../pages/connexion.html")
     } catch (error) {
         formError.classList.add('bg-warning', 'text-danger')
         formError.textContent = error
-        console.error(error);
+        //console.error(error);
     }
 })

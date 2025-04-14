@@ -6,7 +6,7 @@ contextBridge.exposeInMainWorld('UserAPI', {
     // fonction qui récupére la liste des tâches via IPC
     getAll: () => ipcRenderer.invoke('user:getAll'),
     addUser: (password, email, prenom, nom) => ipcRenderer.invoke('user:addUser', password, email, prenom, nom),
-    //deleteOne : (id) => ipcRenderer.invoke('todos:del',id)
+    login: (email, password) => ipcRenderer.invoke('user:login', email, password), // Ajout de la méthode login
 })
 
 console.log("Preload chargé avec succès")
