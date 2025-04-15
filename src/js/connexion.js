@@ -6,17 +6,21 @@ document.getElementById('form').addEventListener('submit', async (event) => {
 
     try {
         const result = await window.UserAPI.login(email, password);
+        //console.log(result);
+
         if (result) {
             const { token, user } = result;
-            //console.log('Connexion réussie !', user);
+            //console.log('Connexion réussie !
+            // 
+            // 
+            // ', user);
 
             // Stocker le token dans le localStorage
             localStorage.setItem('authToken', token);
 
             // Rediriger vers une autre page ou afficher un message de succès
-            //window.location.replace("../pages/index.html")
+            window.location.replace("../pages/index.html")
 
-            alert('Connexion réussie !');
         } else {
             document.getElementById('error-form').innerText = 'Échec de la connexion. Vérifiez vos identifiants.';
         }

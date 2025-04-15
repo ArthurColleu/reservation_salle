@@ -155,7 +155,7 @@ async function addUser(password, email, prenom, nom) {
 }
 
 ipcMain.handle('user:addUser', async (event, password, email, prenom, nom) => {
-    console.log(password, email, prenom, nom)
+    //console.log(password, email, prenom, nom)
     try {
         await addUser(password, email, prenom, nom);
         return true
@@ -167,7 +167,7 @@ ipcMain.handle('user:addUser', async (event, password, email, prenom, nom) => {
 })
 
 // Fonction pour vérifier les identifiants de l'utilisateur
-async function loginUser(email, password) {
+async function loginUser(email, password) {    
     try {
         const [rows] = await pool.query('SELECT * FROM users WHERE email_user = ?', [email]);
         if (rows.length === 0) {
@@ -176,6 +176,7 @@ async function loginUser(email, password) {
 
         const user = rows[0];
         const isPasswordValid = await bcrypt.compare(password, user.password_user);
+
         if (!isPasswordValid) {
             throw new Error('Mot de passe incorrect');
         }
@@ -184,9 +185,8 @@ async function loginUser(email, password) {
         const token = jwt.sign(
             { id: user.id_user, email: user.email_user },
             process.env.JWT_SECRET, // Clé secrète pour signer le token
-            { expiresIn: '1h' } // Durée de validité du token
+            { expiresIn:'1h' } // Durée de validité du token
         );
-
         return { token, user: { id: user.id_user, email: user.email_user, prenom: user.prenom_user, nom: user.nom_user } };
     } catch (error) {
         console.error('Erreur lors de la connexion :', error.message);
