@@ -12,6 +12,8 @@ require("dotenv").config()
 //Fenetre  principale
 let window;
 
+let isUserLoggedIn = false; // Variable pour suivre l'état de connexion
+
 //Configuration de l'accès à la base de données
 const dbConfig = {
     host: process.env.DB_HOST,
@@ -62,7 +64,6 @@ function createWindow() {
 
 // Fonctions permettant decréer un menu personnalisé
 function createMenu() {
-    //Créer un tableau qui va représenter le menu -> modèle
     const template = [
         {
             label: "App",
@@ -74,7 +75,6 @@ function createMenu() {
                 {
                     type: 'separator'
                 },
-
                 {
                     label: 'Quitter',
                     accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
@@ -84,29 +84,43 @@ function createMenu() {
         },
         {
             label: "Utilisateur",
-            submenu: [
-                {
-                    label: 'Inscription',
-                    click: () => window.loadFile('src/pages/inscription.html')
-                },
-                {
-                    type: 'separator'
-                },
-                {
-                    label: 'Connexion',
-                    click: () => window.loadFile('src/pages/connexion.html')
-                },
-                {
-                    type: 'separator'
-                },
-            ]
+            submenu: isUserLoggedIn
+                ? [
+                    {
+                        label: 'Déconnexion',
+                        click: () => {
+                            const userId = localStorage.getItem('userId'); // Récupérer l'ID de l'utilisateur                
+                            // Supprimer le token du localStorage
+                            localStorage.removeItem('authToken');
+                            // Déconnexion de l'utilisateur
+                            window.webContents.send('user:logout', userId);
+                            isUserLoggedIn = false; // Mettre à jour l'état de connexion
+                            createMenu(); // Recréer le menu
+                        }
+                    }
+                ]
+                : [
+                    {
+                        label: 'Inscription',
+                        click: () => window.loadFile('src/pages/inscription.html')
+                    },
+                    {
+                        type: 'separator'
+                    },
+                    {
+                        label: 'Connexion',
+                        click: () => window.loadFile('src/pages/connexion.html')
+                    }
+                ]
         }
-    ]
-    //Créer le menu à partir du modèle
-    const menu = Menu.buildFromTemplate(template)
-    //définir le menu comme étant le menu de mon application
-    Menu.setApplicationMenu(menu)
+    ];
+
+    // Créer le menu à partir du modèle
+    const menu = Menu.buildFromTemplate(template);
+    // Définir le menu comme étant le menu de l'application
+    Menu.setApplicationMenu(menu);
 }
+
 //Attendre l'initialisation de l'application au démarrage
 
 app.whenReady().then(() => {
@@ -126,7 +140,7 @@ async function getAllUsers() {
         const resultat = await pool.query('SELECT * FROM users')
         return resultat[0] // Retourne une promesse avec le résultat
     } catch (error) {
-        console.error('erreur lors de la récupération des tâches')
+        console.error('erreur lors de la récupération des utilisateurs:', error)
         throw error; // retourner une promesse non résolue
     }
 }
@@ -167,29 +181,57 @@ ipcMain.handle('user:addUser', async (event, password, email, prenom, nom) => {
 })
 
 // Fonction pour vérifier les identifiants de l'utilisateur
-async function loginUser(email, password) {    
+async function login(email, password) {
     try {
         const [rows] = await pool.query('SELECT * FROM users WHERE email_user = ?', [email]);
+
         if (rows.length === 0) {
             throw new Error('Utilisateur non trouvé');
         }
 
         const user = rows[0];
-        const isPasswordValid = await bcrypt.compare(password, user.password_user);
 
+        const isPasswordValid = await bcrypt.compare(password, user.password_user);
         if (!isPasswordValid) {
             throw new Error('Mot de passe incorrect');
         }
 
         // Générer un token JWT
-        const token = jwt.sign(
-            { id: user.id_user, email: user.email_user },
-            process.env.JWT_SECRET, // Clé secrète pour signer le token
-            { expiresIn:'1h' } // Durée de validité du token
-        );
-        return { token, user: { id: user.id_user, email: user.email_user, prenom: user.prenom_user, nom: user.nom_user } };
+        const token = jwt.sign({ id: user.id_user, email: user.email_user }, 'votre_secret_jwt', { expiresIn: '1h' });
+
+        // Stocker le token dans la base de données
+        await pool.query('UPDATE users SET token = ? WHERE id_user = ?', [token, user.id_user]);
+
+        return { token, user };
     } catch (error) {
-        console.error('Erreur lors de la connexion :', error.message);
+        console.error('Erreur lors de la connexion :', error);
+        throw error;
+    }
+}
+
+// Fonction pour déconnecter l'utilisateur
+async function logout(userId) {
+    try {
+        await pool.query('UPDATE users SET token = NULL WHERE id_user = ?', [userId]);
+    } catch (error) {
+        console.error('Erreur lors de la déconnexion :', error);
+        throw error;
+    }
+}
+
+// Fonction pour vérifier le token JWT
+async function verifyToken(token) {
+    try {
+        const decoded = jwt.verify(token, 'votre_secret_jwt');
+        const [rows] = await pool.query('SELECT * FROM users WHERE id_user = ? AND token = ?', [decoded.id, token]);
+
+        if (rows.length === 0) {
+            throw new Error('Token invalide ou expiré');
+        }
+
+        return rows[0]; // Retourne l'utilisateur si le token est valide
+    } catch (error) {
+        console.error('Erreur lors de la vérification du token :', error);
         throw error;
     }
 }
@@ -197,9 +239,33 @@ async function loginUser(email, password) {
 // Gestion de l'événement "user:login"
 ipcMain.handle('user:login', async (event, email, password) => {
     try {
-        return await loginUser(email, password);
+        const result = await login(email, password);
+        if (result) {
+            isUserLoggedIn = true; // Mettre à jour l'état de connexion
+            createMenu(); // Recréer le menu
+        }
+        return result;
     } catch (error) {
         dialog.showErrorBox("Erreur de connexion", error.message);
         return null;
+    }
+});
+
+ipcMain.handle('user:verifyToken', async (event, token) => {
+    try {
+        return await verifyToken(token);
+    } catch (error) {
+        console.error('Erreur lors de la vérification du token :', error);
+        return null;
+    }
+});
+
+ipcMain.handle('user:logout', async (event, userId) => {
+    try {
+        await logout(userId); // Supprime le token de la base de données
+        isUserLoggedIn = false; // Met à jour l'état de connexion
+        createMenu(); // Recrée le menu
+    } catch (error) {
+        console.error('Erreur lors de la déconnexion :', error);
     }
 });
