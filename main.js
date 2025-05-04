@@ -88,15 +88,7 @@ function createMenu() {
                 ? [
                     {
                         label: 'Déconnexion',
-                        click: () => {
-                            const userId = localStorage.getItem('userId'); // Récupérer l'ID de l'utilisateur                
-                            // Supprimer le token du localStorage
-                            localStorage.removeItem('authToken');
-                            // Déconnexion de l'utilisateur
-                            window.webContents.send('user:logout', userId);
-                            isUserLoggedIn = false; // Mettre à jour l'état de connexion
-                            createMenu(); // Recréer le menu
-                        }
+                        click: () => window.loadFile('src/pages/logout.html')
                     }
                 ]
                 : [
@@ -198,7 +190,9 @@ async function login(email, password) {
 
         // Générer un token JWT
         const token = jwt.sign({ id: user.id_user, email: user.email_user }, 'votre_secret_jwt', { expiresIn: '1h' });
-
+        console.log('Token généré:', token);
+        const decoded = jwt.verify(token, 'votre_secret_jwt');
+        console.log('Token décodé:', decoded);
         // Stocker le token dans la base de données
         await pool.query('UPDATE users SET token = ? WHERE id_user = ?', [token, user.id_user]);
 
@@ -222,7 +216,7 @@ async function logout(userId) {
 // Fonction pour vérifier le token JWT
 async function verifyToken(token) {
     try {
-        const decoded = jwt.verify(token, 'votre_secret_jwt');
+        const decoded = jwt.verify(token, 'votre_secret_jwt'); // Décoder le token
         const [rows] = await pool.query('SELECT * FROM users WHERE id_user = ? AND token = ?', [decoded.id, token]);
 
         if (rows.length === 0) {
@@ -253,18 +247,18 @@ ipcMain.handle('user:login', async (event, email, password) => {
 
 ipcMain.handle('user:verifyToken', async (event, token) => {
     try {
-        return await verifyToken(token);
+        return await verifyToken(token); // Appelle la fonction pour vérifier le token
     } catch (error) {
         console.error('Erreur lors de la vérification du token :', error);
-        return null;
+        return null; // Retourne null si le token est invalide ou expiré
     }
 });
 
 ipcMain.handle('user:logout', async (event, userId) => {
     try {
-        await logout(userId); // Supprime le token de la base de données
         isUserLoggedIn = false; // Met à jour l'état de connexion
         createMenu(); // Recrée le menu
+        return await logout(userId);
     } catch (error) {
         console.error('Erreur lors de la déconnexion :', error);
     }
