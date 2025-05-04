@@ -1,89 +1,136 @@
-
--- MySQL dump 10.13  Distrib 8.0.33, for Win64 (x86_64)
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1    Database: db_reserv_salle
--- ------------------------------------------------------
--- Server version	8.4.3
+-- Hôte : 127.0.0.1
+-- Généré le : dim. 04 mai 2025 à 22:03
+-- Version du serveur : 10.4.28-MariaDB
+-- Version de PHP : 8.2.4
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+/*!40101 SET NAMES utf8mb4 */;
 
 --
--- Table structure for table `espaces`
+-- Base de données : `db_reserv_salle`
 --
 
-DROP TABLE IF EXISTS `espaces`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `espaces`
+--
+
 CREATE TABLE `espaces` (
-  `id_espace` int NOT NULL AUTO_INCREMENT,
+  `id_espace` int(11) NOT NULL,
   `nom_espace` varchar(50) NOT NULL,
-  `capacite_espace` int NOT NULL,
-  `equipement_espace` json NOT NULL,
-  `description_espace` varchar(150) NOT NULL,
-  PRIMARY KEY (`id_espace`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `capacite_espace` int(11) NOT NULL,
+  `equipement_espace` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`equipement_espace`)),
+  `description_espace` varchar(150) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
 
 --
--- Table structure for table `reservations`
+-- Structure de la table `reservations`
 --
 
-DROP TABLE IF EXISTS `reservations`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `reservations` (
-  `id_reservation` int NOT NULL AUTO_INCREMENT,
-  `id_user` int NOT NULL,
-  `id_espace` int NOT NULL,
+  `id_reservation` int(11) NOT NULL,
+  `id_user` int(11) NOT NULL,
+  `id_espace` int(11) NOT NULL,
   `date_reserv_debut` date NOT NULL,
   `date_reserv_fin` date NOT NULL,
-  `statut` varchar(10) NOT NULL,
-  PRIMARY KEY (`id_reservation`),
-  KEY `FK_RESERVATONS_USER` (`id_user`),
-  KEY `FK_RESERVATIONS_ESPACE` (`id_espace`),
-  CONSTRAINT `FK_RESERVATIONS_ESPACE` FOREIGN KEY (`id_espace`) REFERENCES `espaces` (`id_espace`),
-  CONSTRAINT `FK_RESERVATONS_USER` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `statut` varchar(10) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
 
 --
--- Table structure for table `users`
+-- Structure de la table `users`
 --
 
-DROP TABLE IF EXISTS `users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
-  `id_user` int NOT NULL AUTO_INCREMENT,
+  `id_user` int(11) NOT NULL,
   `prenom_user` varchar(100) NOT NULL,
   `nom_user` varchar(100) NOT NULL,
   `email_user` varchar(100) NOT NULL,
   `password_user` varchar(100) NOT NULL,
   `date_create` datetime NOT NULL,
-  PRIMARY KEY (`id_user`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `token` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping routines for database 'db_reserv_salle'
+-- Déchargement des données de la table `users`
 --
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+INSERT INTO `users` (`id_user`, `prenom_user`, `nom_user`, `email_user`, `password_user`, `date_create`, `token`) VALUES
+(1, 'Arthur', 'Clleu', 'test@gmail.com', '$2b$10$SxKxEIQ6YBOMSx2KxJAEk.JX6bwcDKCqYO91Vx1jTmLM.txXKuxzu', '2025-04-30 18:22:25', NULL);
+
+--
+-- Index pour les tables déchargées
+--
+
+--
+-- Index pour la table `espaces`
+--
+ALTER TABLE `espaces`
+  ADD PRIMARY KEY (`id_espace`);
+
+--
+-- Index pour la table `reservations`
+--
+ALTER TABLE `reservations`
+  ADD PRIMARY KEY (`id_reservation`),
+  ADD KEY `FK_RESERVATONS_USER` (`id_user`),
+  ADD KEY `FK_RESERVATIONS_ESPACE` (`id_espace`);
+
+--
+-- Index pour la table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id_user`);
+
+--
+-- AUTO_INCREMENT pour les tables déchargées
+--
+
+--
+-- AUTO_INCREMENT pour la table `espaces`
+--
+ALTER TABLE `espaces`
+  MODIFY `id_espace` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `reservations`
+--
+ALTER TABLE `reservations`
+  MODIFY `id_reservation` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- Contraintes pour les tables déchargées
+--
+
+--
+-- Contraintes pour la table `reservations`
+--
+ALTER TABLE `reservations`
+  ADD CONSTRAINT `FK_RESERVATIONS_ESPACE` FOREIGN KEY (`id_espace`) REFERENCES `espaces` (`id_espace`),
+  ADD CONSTRAINT `FK_RESERVATONS_USER` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`);
+COMMIT;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2025-04-02  9:50:01
