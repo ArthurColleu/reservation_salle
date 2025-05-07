@@ -28,7 +28,7 @@ cd reservation_salle
 npm install
 ```
 
-Ne pas oublier de lacer le script SQL de la base de donnée ('db_reserv_salle.sql') dans MySQL.
+Ne pas oublier de lancer le script SQL de la base de donnée ('db_reserv_salle.sql') dans MySQL.
 
 # Utilisation
 
